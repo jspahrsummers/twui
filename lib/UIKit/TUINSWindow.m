@@ -18,6 +18,7 @@
 #import "TUICGAdditions.h"
 #import "TUINSView.h"
 #import "TUINSView+Hyperfocus.h"
+#import "TUIResponder.h"
 
 @interface NSView (TUIWindowAdditions)
 @end

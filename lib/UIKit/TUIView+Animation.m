@@ -16,7 +16,6 @@
 
 #import "TUIView.h"
 #import "TUIView+Private.h"
-#import "TUICAAction.h"
 
 @interface TUIViewAnimation : NSObject <CAAction>
 {
@@ -305,10 +304,7 @@ static BOOL animateContents = NO;
 	if (!animation)
 		return defaultAction;
 
-	if ([TUICAAction interceptsActionForKey:event])
-		return [TUICAAction actionWithAction:animation];
-	else
-		return animation;
+	return animation;
 }
 
 @end

@@ -23,7 +23,6 @@
 #import "TUINSWindow.h"
 #import "TUITextRenderer.h"
 #import "TUIView+Private.h"
-#import "TUIView+TUIBridgedView.h"
 #import "TUIViewController.h"
 
 /*
@@ -571,12 +570,9 @@ static void TUISetCurrentContextScaleFactor(CGFloat s)
 		_subviews = [[NSMutableArray alloc] init];
 	}
 
-	TUINSView *originalNSView = view.ancestorTUINSView;
-
 	/* will call willAdd:nil and didAdd (nil) */
 	[view removeFromSuperview];
 
-	[view willMoveToTUINSView:_nsView];
 	[view willMoveToSuperview:self];
 	view.nsView = _nsView;
 
@@ -584,7 +580,6 @@ static void TUISetCurrentContextScaleFactor(CGFloat s)
 
 	[self didAddSubview:view];
 	[view didMoveToSuperview];
-	[view didMoveFromTUINSView:originalNSView];
 
 	[view setNextResponder:self];
 	[self _blockLayout];
@@ -757,9 +752,6 @@ static void TUISetCurrentContextScaleFactor(CGFloat s)
 	
 	TUIView *superview = [self superview];
 	if(superview) {
-		TUINSView *nsView = self.ancestorTUINSView;
-		[self willMoveToTUINSView:nil];
-
 		[superview willRemoveSubview:self];
 		[self willMoveToSuperview:nil];
 
@@ -768,8 +760,6 @@ static void TUISetCurrentContextScaleFactor(CGFloat s)
 		self.nsView = nil;
 
 		[self didMoveToSuperview];
-		[self didMoveFromTUINSView:nsView];
-		[self viewHierarchyDidChange];
 	}
 }
 
@@ -1116,16 +1106,12 @@ static void TUISetCurrentContextScaleFactor(CGFloat s)
 - (void)setNSView:(TUINSView *)n
 {
 	if(n != _nsView) {
-		TUINSView *oldNSView = _nsView;
-
 		[self willMoveToWindow:(TUINSWindow *)[n window]];
 		[[NSNotificationCenter defaultCenter] postNotificationName:TUIViewWillMoveToWindowNotification object:self userInfo:[n window] ? [NSDictionary dictionaryWithObject:[n window] forKey:TUIViewWindow] : nil];
-		[self willMoveToTUINSView:n];
 
 		_nsView = n;
 		[self.subviews makeObjectsPerformSelector:@selector(setNSView:) withObject:n];
 
-		[self didMoveFromTUINSView:oldNSView];
 		[self didMoveToWindow];
 		[[NSNotificationCenter defaultCenter] postNotificationName:TUIViewDidMoveToWindowNotification object:self userInfo:[n window] ? [NSDictionary dictionaryWithObject:[n window] forKey:TUIViewWindow] : nil];
 	}

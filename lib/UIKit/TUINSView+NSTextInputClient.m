@@ -18,6 +18,7 @@
 #import "TUINSView+Private.h"
 #import "TUINSWindow.h"
 #import "TUITextRenderer.h"
+#import "TUIView.h"
 
 @implementation TUINSView (NSTextInputClient)
 
