@@ -121,20 +121,20 @@
 }
 
 - (void)setHostView:(id<TUIHostView>)view {
-    @autoreleasepool {
-        TUINSView *oldTUINSView = self.ancestorTUINSView;
-        TUINSView *newTUINSView = view.ancestorTUINSView;
+	@autoreleasepool {
+		TUINSView *oldTUINSView = self.ancestorTUINSView;
+		TUINSView *newTUINSView = view.ancestorTUINSView;
 
-        if (oldTUINSView != newTUINSView)
-            [self willMoveToTUINSView:newTUINSView];
+		if (oldTUINSView != newTUINSView)
+			[self willMoveToTUINSView:newTUINSView];
 
 		objc_setAssociatedObject(self, @selector(hostView), view, OBJC_ASSOCIATION_ASSIGN);
 
-        if (oldTUINSView != newTUINSView)
-            [self didMoveFromTUINSView:oldTUINSView];
+		if (oldTUINSView != newTUINSView)
+			[self didMoveFromTUINSView:oldTUINSView];
 
-        [self viewHierarchyDidChange];
-    }
+		[self viewHierarchyDidChange];
+	}
 }
 
 - (void)ancestorDidLayout; {

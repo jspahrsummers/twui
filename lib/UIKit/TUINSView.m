@@ -232,7 +232,9 @@ static NSComparisonResult compareNSViewOrdering (NSView *viewA, NSView *viewB, v
 
 	_rootView.nsView = nil;
 	_rootView.hostView = nil;
+
 	_rootView = v;
+
 	_rootView.nsView = self;
 	_rootView.hostView = self;
 	
