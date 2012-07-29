@@ -158,11 +158,19 @@
 #pragma mark Drawing
 
 - (void)drawRect:(CGRect)rect {
+	CGContextRef context = [NSGraphicsContext currentContext].graphicsPort;
+
+	#if DEBUG
+	CGContextSaveGState(context);
+	CGContextSetRGBFillColor(context, 0, 0, 1, 1);
+	CGContextFillRect(context, self.bounds);
+	CGContextRestoreGState(context);
+	#endif
+
 	if (!self.renderingContainedView) {
 		return;
 	}
 
-	CGContextRef context = [NSGraphicsContext currentContext].graphicsPort;
 	CGContextSaveGState(context);
 
 	if ([self.rootView isFlipped]) {
