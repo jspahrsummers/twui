@@ -82,6 +82,9 @@
 	CGRect trackBounds = self.bounds;
 	CGRect visible = scrollView.visibleRect;
 	CGSize contentSize = scrollView.contentSize;
+
+	[CATransaction begin];
+	[CATransaction setAnimationDuration:0];
 	
 	if([self isVertical]) {
 		KNOB_CALCULATIONS(y, height, DEFAULT_MIN_KNOB_SIZE)
@@ -101,6 +104,7 @@
 		knob.frame = ABRectRoundOrigin(CGRectInset(frame, 4, 2));
 	}
 	
+	[CATransaction commit];
 }
 
 - (void)layout
