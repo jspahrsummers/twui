@@ -472,10 +472,10 @@ enum {
 
 - (void)layout
 {
-	[super layout];
-
 	self.contentOffset = _unroundedContentOffset;
 	[self _updateScrollKnobs];
+
+	[super layout];
 }
 
 static CGFloat lerp(CGFloat a, CGFloat b, CGFloat t)
