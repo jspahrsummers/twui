@@ -15,7 +15,6 @@
  */
 
 #import "TUIKit.h"
-#import "ExampleTabBar.h"
 
 @interface ExampleScrollView : TUIView
 @end
