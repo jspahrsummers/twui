@@ -63,16 +63,11 @@ enum {
 	return YES;
 }
 
-+ (Class)layerClass
-{
-	return [CAScrollLayer class];
-}
-
 - (id)initWithFrame:(CGRect)frame
 {
 	if((self = [super initWithFrame:frame]))
 	{
-		_layer.masksToBounds = NO; // differs from UIKit
+		self.wantsLayer = YES;
 
 		decelerationRate = 0.88;
 		
@@ -96,6 +91,12 @@ enum {
 		[self addSubview:_verticalScrollKnob];
 	}
 	return self;
+}
+
+- (CALayer *)makeBackingLayer {
+	CALayer *layer = [CAScrollLayer layer];
+	layer.masksToBounds = NO; // differs from UIKit
+	return layer;
 }
 
 - (void)dealloc
