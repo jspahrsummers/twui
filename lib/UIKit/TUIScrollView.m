@@ -68,6 +68,9 @@ enum {
 	if((self = [super initWithFrame:frame]))
 	{
 		self.wantsLayer = YES;
+		self.postsBoundsChangedNotifications = NO;
+		self.layerContentsPlacement = NSViewLayerContentsPlacementTopLeft;
+		self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawNever;
 
 		decelerationRate = 0.88;
 		
@@ -545,7 +548,9 @@ static CGPoint PointLerp(CGPoint a, CGPoint b, CGFloat t)
 	_unroundedContentOffset = p;
 	p.x = round(-p.x - self.bounceOffset.x - self.pullOffset.x);
 	p.y = round(-p.y - self.bounceOffset.y - self.pullOffset.y);
-	[((CAScrollLayer *)self.layer) scrollToPoint:p];
+
+	self.boundsOrigin = p;
+
 	if(_scrollViewFlags.delegateScrollViewDidScroll){
 		[_delegate scrollViewDidScroll:self];
 	}
@@ -1203,6 +1208,10 @@ static float clampBounce(float x) {
 - (BOOL)eventInside:(NSEvent *)event
 {
 	return [self mouse:[self localPointForEvent:event] inRect:self.bounds];
+}
+
+- (BOOL)isOpaque {
+	return YES;
 }
 
 @end
