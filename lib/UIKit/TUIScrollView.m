@@ -1191,7 +1191,7 @@ static float clampBounce(float x) {
 		[self removeTrackingArea:self.trackingArea];
 	}
 
-	self.trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:NSTrackingMouseEnteredAndExited owner:self userInfo:nil];
+	self.trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways owner:self userInfo:nil];
 	[self addTrackingArea:self.trackingArea];
 }
 
