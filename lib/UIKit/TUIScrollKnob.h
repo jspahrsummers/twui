@@ -14,14 +14,12 @@
  limitations under the License.
  */
 
-#import "TUIView.h"
-
 @class TUIScrollView;
 
-@interface TUIScrollKnob : TUIView
+@interface TUIScrollKnob : NSView
 {
 	TUIScrollView *__unsafe_unretained scrollView;
-	TUIView *knob;
+	CALayer *knob;
 	CGPoint _mouseDown;
 	CGRect _knobStartFrame;
 	
@@ -35,8 +33,8 @@
 }
 
 @property (nonatomic, unsafe_unretained) TUIScrollView * scrollView;
-@property (nonatomic, assign) unsigned int    scrollIndicatorStyle;
-@property (nonatomic, readonly) TUIView     * knob;
+@property (nonatomic, assign) unsigned int scrollIndicatorStyle;
+@property (nonatomic, readonly) CALayer *knob;
 @property (nonatomic, readonly) BOOL flashing;
 
 - (void)flash;

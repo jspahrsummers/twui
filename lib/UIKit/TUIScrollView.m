@@ -16,9 +16,7 @@
 
 #import "TUIScrollView.h"
 #import "TUIKit.h"
-#import "TUINSView.h"
 #import "TUIScrollKnob.h"
-#import "TUIView+Private.h"
 
 #define KNOB_Z_POSITION 6000
 
@@ -41,15 +39,18 @@ enum {
 	AnimationModeScrollContinuous,
 };
 
-@interface TUIScrollView (Private)
+@interface TUIScrollView ()
+@property (nonatomic, strong) NSTrackingArea *trackingArea;
 
 - (BOOL)_pulling;
 - (BOOL)_verticalScrollKnobNeededForContentSize:(CGSize)size;
-- (BOOL)_horizonatlScrollKnobNeededForContentSize:(CGSize)size;
+- (BOOL)_horizontalScrollKnobNeededForContentSize:(CGSize)size;
 - (void)_updateScrollKnobs;
-- (void)_updateScrollKnobsAnimated:(BOOL)animated;
 - (void)_updateBounce;
 - (void)_startTimer:(int)scrollMode;
+
+- (CGPoint)localPointForEvent:(NSEvent *)event;
+- (BOOL)eventInside:(NSEvent *)event;
 
 @end
 
@@ -57,6 +58,10 @@ enum {
 
 @synthesize decelerationRate;
 @synthesize resizeKnobSize;
+
++ (BOOL)requiresConstraintBasedLayout {
+	return YES;
+}
 
 + (Class)layerClass
 {
@@ -82,14 +87,12 @@ enum {
 		_horizontalScrollKnob.scrollView = self;
 		_horizontalScrollKnob.layer.zPosition = KNOB_Z_POSITION;
 		_horizontalScrollKnob.hidden = YES;
-		_horizontalScrollKnob.opaque = NO;
 		[self addSubview:_horizontalScrollKnob];
 		
 		_verticalScrollKnob = [[TUIScrollKnob alloc] initWithFrame:CGRectZero];
 		_verticalScrollKnob.scrollView = self;
 		_verticalScrollKnob.layer.zPosition = KNOB_Z_POSITION;
 		_verticalScrollKnob.hidden = YES;
-		_verticalScrollKnob.opaque = NO;
 		[self addSubview:_verticalScrollKnob];
 	}
 	return self;
@@ -270,9 +273,9 @@ enum {
 	[self _updateScrollKnobsAnimated:TRUE];
 }
 
-- (void)willMoveToWindow:(TUINSWindow *)newWindow
+- (void)viewWillMoveToWindow:(NSWindow *)newWindow
 {
-	[super willMoveToWindow:newWindow];
+	[super viewWillMoveToWindow:newWindow];
 	if(!newWindow) {
 		x = YES;
 		[self _stopTimer];
@@ -432,9 +435,9 @@ enum {
     }
   }
   
-  _verticalScrollKnob.alpha = 1.0;
+  _verticalScrollKnob.alphaValue = 1.0;
   _verticalScrollKnob.hidden = !vEffectiveVisible;
-  _horizontalScrollKnob.alpha = 1.0;
+  _horizontalScrollKnob.alphaValue = 1.0;
   _horizontalScrollKnob.hidden = !hEffectiveVisible;
   
   // update scroll indiciator visible state
@@ -460,14 +463,16 @@ enum {
   }
   
 	if(vEffectiveVisible)
-		[_verticalScrollKnob setNeedsLayout];
+		[_verticalScrollKnob setNeedsLayout:YES];
 	if(hEffectiveVisible)
-		[_horizontalScrollKnob setNeedsLayout];
+		[_horizontalScrollKnob setNeedsLayout:YES];
 	
 }
 
-- (void)layoutSubviews
+- (void)layout
 {
+	[super layout];
+
 	self.contentOffset = _unroundedContentOffset;
 	[self _updateScrollKnobs];
 }
@@ -754,7 +759,7 @@ static float clampBounce(float x) {
 {
 	[self _updateBounce]; // can't do after _startBounce otherwise dt will be crazy
 	
-	if(self.nsWindow == nil) {
+	if(self.window == nil) {
 		NSLog(@"Warning: no window %d (should be 1)", x);
 		[self _stopTimer];
 		return;
@@ -841,7 +846,6 @@ static float clampBounce(float x) {
 		// scroll up, rect to be flush with top of view
 		[self setContentOffset:CGPointMake(0, -rect.origin.y + visible.size.height - rect.size.height) animated:animated];
 	}
-	[self.nsView invalidateHoverForView:self];
 }
 
 - (void)scrollToTopAnimated:(BOOL)animated
@@ -1138,37 +1142,17 @@ static float clampBounce(float x) {
 	}
 }
 
--(void)mouseDown:(NSEvent *)event onSubview:(TUIView *)subview {
-  if(subview == _verticalScrollKnob || subview == _horizontalScrollKnob){
-    _scrollViewFlags.mouseDownInScrollKnob = TRUE;
-    [self _updateScrollKnobsAnimated:TRUE];
-  }
-	
-	[super mouseDown:event onSubview:subview];
-}
-
--(void)mouseUp:(NSEvent *)event fromSubview:(TUIView *)subview {
-  if(subview == _verticalScrollKnob || subview == _horizontalScrollKnob){
-    _scrollViewFlags.mouseDownInScrollKnob = FALSE;
-    [self _updateScrollKnobsAnimated:TRUE];
-  }
-	
-	[super mouseUp:event fromSubview:subview];
-}
-
--(void)mouseEntered:(NSEvent *)event onSubview:(TUIView *)subview {
-  [super mouseEntered:event onSubview:subview];
+-(void)mouseEntered:(NSEvent *)event {
   if(!_scrollViewFlags.mouseInside){
     _scrollViewFlags.mouseInside = TRUE;
     [self _updateScrollKnobsAnimated:TRUE];
   }
 }
 
--(void)mouseExited:(NSEvent *)event fromSubview:(TUIView *)subview {
-  [super mouseExited:event fromSubview:subview];
+-(void)mouseExited:(NSEvent *)event {
   CGPoint location = [self localPointForEvent:event];
   CGRect visible = [self visibleRect];
-  if(_scrollViewFlags.mouseInside && ![self pointInside:CGPointMake(location.x, location.y + visible.origin.y) withEvent:event]){
+  if(_scrollViewFlags.mouseInside && ![self mouse:CGPointMake(location.x, location.y + visible.origin.y) inRect:self.bounds]){
     _scrollViewFlags.mouseInside = FALSE;
     [self _updateScrollKnobsAnimated:TRUE];
   }
@@ -1197,6 +1181,27 @@ static float clampBounce(float x) {
 			return YES;
 	}
 	return NO;
+}
+
+- (void)updateTrackingAreas {
+	[super updateTrackingAreas];
+
+	if (self.trackingArea != nil) {
+		[self removeTrackingArea:self.trackingArea];
+	}
+
+	self.trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:NSTrackingMouseEnteredAndExited owner:self userInfo:nil];
+	[self addTrackingArea:self.trackingArea];
+}
+
+- (CGPoint)localPointForEvent:(NSEvent *)event
+{
+	return [self convertPoint:[event locationInWindow] fromView:nil];
+}
+
+- (BOOL)eventInside:(NSEvent *)event
+{
+	return [self mouse:[self localPointForEvent:event] inRect:self.bounds];
 }
 
 @end

@@ -14,7 +14,6 @@
  limitations under the License.
  */
 
-#import "TUIView.h"
 #import "TUIGeometry.h"
 
 typedef enum {
@@ -70,7 +69,7 @@ typedef enum {
  
  */
 
-@interface TUIScrollView : TUIView
+@interface TUIScrollView : NSView
 {
   CGPoint         _unroundedContentOffset;
   CGSize          _contentSize;
@@ -121,6 +120,7 @@ typedef enum {
 	
 	BOOL x;
 	
+@public
 	struct {
 		unsigned int didChangeContentInset:1;
 		unsigned int bounceEnabled:1;
@@ -183,6 +183,8 @@ typedef enum {
 
 @property (nonatomic, readonly, getter=isDragging) BOOL dragging;
 @property (nonatomic, readonly, getter=isDecelerating) BOOL decelerating;
+
+- (void)_updateScrollKnobsAnimated:(BOOL)animated;
 
 @end
 

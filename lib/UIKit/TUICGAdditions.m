@@ -15,7 +15,6 @@
  */
 
 #import "TUICGAdditions.h"
-#import "TUIView.h"
 
 CGContextRef TUICreateOpaqueGraphicsContext(CGSize size)
 {
@@ -224,10 +223,14 @@ NSImage *TUIGraphicsGetImageFromCurrentImageContext(void)
 	return TUIGraphicsContextGetImage(TUIGraphicsGetCurrentContext());
 }
 
-NSImage *TUIGraphicsGetImageForView(TUIView *view)
+NSImage *TUIGraphicsGetImageForView(NSView *view)
 {
 	TUIGraphicsBeginImageContext(view.frame.size);
-	[view.layer renderInContext:TUIGraphicsGetCurrentContext()];
+
+	[view lockFocus];
+	[view drawRect:view.bounds];
+	[view unlockFocus];
+
 	NSImage *image = TUIGraphicsGetImageFromCurrentImageContext();
 	TUIGraphicsEndImageContext();
 

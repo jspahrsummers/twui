@@ -29,8 +29,6 @@ typedef NSUInteger TUICGRoundedRectCorner;
 
 #import <Foundation/Foundation.h>
 
-@class TUIView;
-
 extern CGContextRef TUICreateOpaqueGraphicsContext(CGSize size);
 extern CGContextRef TUICreateGraphicsContext(CGSize size);
 extern CGContextRef TUICreateGraphicsContextWithOptions(CGSize size, BOOL opaque);
@@ -61,7 +59,7 @@ extern void TUIGraphicsBeginImageContextWithOptions(CGSize size, BOOL opaque, CG
 extern NSImage *TUIGraphicsGetImageFromCurrentImageContext(void);
 extern void TUIGraphicsEndImageContext(void); 
 
-extern NSImage *TUIGraphicsGetImageForView(TUIView *view);
+extern NSImage *TUIGraphicsGetImageForView(NSView *view);
 
 extern NSImage *TUIGraphicsDrawAsImage(CGSize size, void(^draw)(void));
 

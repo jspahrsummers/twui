@@ -15,13 +15,17 @@
  */
 
 #import "TUIScrollKnob.h"
+#import "NSColor+TUIExtensions.h"
 #import "TUICGAdditions.h"
 #import "TUIScrollView.h"
+#import <QuartzCore/QuartzCore.h>
 
 @interface TUIScrollKnob ()
 - (void)_updateKnob;
 - (void)_updateKnobColor:(CGFloat)duration;
 - (void)_endFlashing;
+
+- (CGPoint)localPointForEvent:(NSEvent *)event;
 @end
 
 @implementation TUIScrollKnob
@@ -29,15 +33,23 @@
 @synthesize scrollView;
 @synthesize knob;
 
++ (BOOL)requiresConstraintBasedLayout {
+	return YES;
+}
+
 - (id)initWithFrame:(CGRect)frame
 {
 	if((self = [super initWithFrame:frame]))
 	{
-		knob = [[TUIView alloc] initWithFrame:CGRectMake(0, 0, 12, 12)];
-		knob.layer.cornerRadius = 4.0;
-		knob.userInteractionEnabled = NO;
-		knob.backgroundColor = [NSColor blackColor];
-		[self addSubview:knob];
+		knob = [CALayer layer];
+		knob.bounds = CGRectMake(0, 0, 12, 12);
+		knob.cornerRadius = 4.0;
+		knob.backgroundColor = [NSColor blackColor].tui_CGColor;
+
+		self.layer = [CALayer layer];
+		self.wantsLayer = YES;
+
+		[self.layer addSublayer:knob];
 		[self _updateKnob];
 		[self _updateKnobColor:0.0];
 	}
@@ -91,8 +103,9 @@
 	
 }
 
-- (void)layoutSubviews
+- (void)layout
 {
+	[super layout];
 	[self _updateKnob];
 }
 
@@ -109,7 +122,7 @@
 						[NSNumber numberWithDouble:0.2],
 						[NSNumber numberWithDouble:0.0],
 						nil];
-	[knob.layer addAnimation:animation forKey:@"opacity"];
+	[knob addAnimation:animation forKey:@"opacity"];
 	[self performSelector:@selector(_endFlashing) withObject:nil afterDelay:(duration - 0.01)];
 }
 
@@ -117,7 +130,7 @@
 {
 	_scrollKnobFlags.flashing = 0;
 	
-	[self.scrollView setNeedsLayout];
+	[self.scrollView setNeedsLayout:YES];
 }
 
 -(unsigned int)scrollIndicatorStyle {
@@ -128,21 +141,21 @@
   _scrollKnobFlags.scrollIndicatorStyle = style;
   switch(style){
     case TUIScrollViewIndicatorStyleLight:
-      knob.backgroundColor = [NSColor whiteColor];
+      knob.backgroundColor = [NSColor whiteColor].tui_CGColor;
       break;
     case TUIScrollViewIndicatorStyleDark:
     default:
-      knob.backgroundColor = [NSColor blackColor];
+      knob.backgroundColor = [NSColor blackColor].tui_CGColor;
       break;
   }
 }
 
 - (void)_updateKnobColor:(CGFloat)duration
 {
-	[TUIView beginAnimations:nil context:NULL];
-	[TUIView setAnimationDuration:duration];
-	knob.alpha = _scrollKnobFlags.active?0.6:_scrollKnobFlags.hover?0.33:0.18;
-	[TUIView commitAnimations];
+	[CATransaction begin];
+	[CATransaction setAnimationDuration:duration];
+	knob.opacity = _scrollKnobFlags.active?0.6:_scrollKnobFlags.hover?0.33:0.18;
+	[CATransaction commit];
 }
 
 - (void)mouseEntered:(NSEvent *)event
@@ -163,12 +176,16 @@
 
 - (void)mouseDown:(NSEvent *)event
 {
+	// AppKit TODO: clean up encapsulation here
+    scrollView->_scrollViewFlags.mouseDownInScrollKnob = TRUE;
+    [scrollView _updateScrollKnobsAnimated:TRUE];
+
 	_mouseDown = [self localPointForEvent:event];
 	_knobStartFrame = knob.frame;
 	_scrollKnobFlags.active = 1;
 	[self _updateKnobColor:0.08];
 
-	if([knob pointInside:[self convertPoint:_mouseDown toView:knob] withEvent:event]) { // can't use hitTest because userInteractionEnabled is NO
+	if([knob containsPoint:[self.layer convertPoint:_mouseDown toLayer:knob]]) {
 		// normal drag-knob-scroll
 		_scrollKnobFlags.trackingInsideKnob = 1;
 	} else {
@@ -200,6 +217,10 @@
 
 - (void)mouseUp:(NSEvent *)event
 {
+	// AppKit TODO: clean up encapsulation here
+    scrollView->_scrollViewFlags.mouseDownInScrollKnob = FALSE;
+    [scrollView _updateScrollKnobsAnimated:TRUE];
+
 	_scrollKnobFlags.active = 0;
 	[self _updateKnobColor:0.08];
 	[super mouseUp:event];
@@ -243,6 +264,15 @@
 - (BOOL)flashing
 {
 	return _scrollKnobFlags.flashing;
+}
+
+- (BOOL)isOpaque {
+	return NO;
+}
+
+- (CGPoint)localPointForEvent:(NSEvent *)event
+{
+	return [self convertPoint:[event locationInWindow] fromView:nil];
 }
 
 @end
