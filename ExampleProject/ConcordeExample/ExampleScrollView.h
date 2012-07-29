@@ -16,5 +16,5 @@
 
 #import "TUIKit.h"
 
-@interface ExampleScrollView : TUIView
+@interface ExampleScrollView : NSView
 @end

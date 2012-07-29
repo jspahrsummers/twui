@@ -18,7 +18,7 @@
 
 @interface ExampleScrollView ()
 @property (nonatomic, strong, readonly) TUIScrollView *scrollView;
-@property (nonatomic, strong, readonly) TUIViewNSViewContainer *textFieldContainer;
+@property (nonatomic, strong, readonly) NSTextField *textField;
 @end
 
 @implementation ExampleScrollView
@@ -27,44 +27,35 @@
 	self = [super initWithFrame:frame];
 	if (self == nil) return nil;
 
-	self.backgroundColor = [NSColor colorWithCalibratedWhite:0.9 alpha:1.0];
+	self.wantsLayer = YES;
+	self.layer.backgroundColor = [NSColor colorWithCalibratedWhite:0.9 alpha:1.0].tui_CGColor;
 	
 	_scrollView = [[TUIScrollView alloc] initWithFrame:self.bounds];
-	_scrollView.autoresizingMask = TUIViewAutoresizingFlexibleSize;
+	_scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 	_scrollView.scrollIndicatorStyle = TUIScrollViewIndicatorStyleDark;
 	[self addSubview:_scrollView];
 	
-	TUIImageView *imageView = [[TUIImageView alloc] initWithImage:[NSImage imageNamed:@"large-image.jpeg"]];
+	NSImage *image = [NSImage imageNamed:@"large-image.jpeg"];
+	self.scrollView.contentSize = image.size;
+
+	NSImageView *imageView = [[NSImageView alloc] initWithFrame:CGRectMake(0, 0, image.size.width, image.size.height)];
+	imageView.image = image;
 	[self.scrollView addSubview:imageView];
-	[self.scrollView setContentSize:imageView.frame.size];
 
-	NSTextField *textField = [[NSTextField alloc] initWithFrame:CGRectMake(200, 200, 100, 22)];
-	textField.target = self;
-	textField.action = @selector(rotateTextField:);
-	textField.backgroundColor = [NSColor whiteColor];
-	textField.drawsBackground = YES;
-	[textField.cell setUsesSingleLineMode:YES];
-	[textField.cell setScrollable:YES];
+	_textField = [[NSTextField alloc] initWithFrame:CGRectMake(200, 200, 100, 22)];
+	_textField.wantsLayer = YES;
+	_textField.target = self;
+	_textField.action = @selector(rotateTextField:);
+	_textField.backgroundColor = [NSColor whiteColor];
+	_textField.drawsBackground = YES;
+	[_textField.cell setUsesSingleLineMode:YES];
+	[_textField.cell setScrollable:YES];
 
-	_textFieldContainer = [[TUIViewNSViewContainer alloc] initWithNSView:textField];
-	textField.frame = textField.bounds;
-	[self.scrollView addSubview:_textFieldContainer];
-
+	[self.scrollView addSubview:self.textField];
 	return self;
 }
 
 - (void)rotateTextField:(id)sender {
-	[TUIView animateWithDuration:2 animations:^{
-		self.textFieldContainer.transform = CGAffineTransformMakeRotation(M_PI);
-	} completion:^(BOOL finished){
-		[TUIView animateWithDuration:2 animations:^{
-			self.textFieldContainer.transform = CGAffineTransformIdentity;
-		}];
-	}];
-
-	// TODO: Applying animations directly to the layer hierarchy currently does
-	// not work.
-	#if 0
 	CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
 	animation.duration = 5;
 	animation.values = @[
@@ -72,8 +63,7 @@
 		[NSValue valueWithCATransform3D:CATransform3DMakeRotation(2 * M_PI, 0, 0, 1)]
 	];
 
-	[self.textFieldContainer.layer addAnimation:animation forKey:@"transform"];
-	#endif
+	[self.textField.layer addAnimation:animation forKey:@"transform"];
 }
 
 @end
