@@ -34,13 +34,6 @@
 	_scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 	_scrollView.scrollIndicatorStyle = TUIScrollViewIndicatorStyleDark;
 	[self addSubview:_scrollView];
-	
-	NSImage *image = [NSImage imageNamed:@"large-image.jpeg"];
-	self.scrollView.contentSize = image.size;
-
-	NSImageView *imageView = [[NSImageView alloc] initWithFrame:CGRectMake(0, 0, image.size.width, image.size.height)];
-	imageView.image = image;
-	[self.scrollView addSubview:imageView];
 
 	_textField = [[NSTextField alloc] initWithFrame:CGRectMake(200, 200, 100, 22)];
 	_textField.wantsLayer = YES;
@@ -51,7 +44,15 @@
 	[_textField.cell setUsesSingleLineMode:YES];
 	[_textField.cell setScrollable:YES];
 
-	[self.scrollView addSubview:self.textField];
+	[self.scrollView addSubview:self.textField positioned:NSWindowBelow relativeTo:nil];
+	
+	NSImage *image = [NSImage imageNamed:@"large-image.jpeg"];
+	self.scrollView.contentSize = image.size;
+
+	NSImageView *imageView = [[NSImageView alloc] initWithFrame:CGRectMake(0, 0, image.size.width, image.size.height)];
+	imageView.image = image;
+	[self.scrollView addSubview:imageView positioned:NSWindowBelow relativeTo:nil];
+
 	return self;
 }
 
